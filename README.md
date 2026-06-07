@@ -1,6 +1,8 @@
 # retryx
 
 ![CI](https://github.com/istvzsig/retryx/actions/workflows/ci.yml/badge.svg)
+![Go Version](https://img.shields.io/badge/go-1.22-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 retryx helps you build **production-grade resilient clients** with:
 
