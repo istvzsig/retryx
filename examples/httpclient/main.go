@@ -13,32 +13,51 @@ import (
 
 // go run ./examples/httpclient
 func main() {
-	client := &http.Client{Timeout: 2 * time.Second}
+	httpClient := &http.Client{
+		Timeout: 2 * time.Second,
+	}
+
+	policy := retry.DefaultPolicy()
+	policy.MaxAttempts = 3
+	policy.TimeoutPerTry = 1500 * time.Millisecond
+
+	policy.OnRetry = func(info retry.AttemptInfo) {
+		fmt.Printf("[retry] attempt=%d err=%v delay=%v\n",
+			info.Attempt,
+			info.Err,
+			info.Delay,
+		)
+	}
 
 	br := breaker.New(breaker.BreakerConfig{
 		FailureThreshold: 3,
 		SuccessThreshold: 2,
 		OpenTimeout:      5 * time.Second,
 		OnStateChange: func(from, to breaker.State) {
-			fmt.Printf("breaker: %v -> %v\n", from, to)
+			fmt.Printf("[breaker] %s -> %s\n", from, to)
 		},
 	})
 
-	p := retry.DefaultPolicy()
-	p.MaxAttempts = 3
-	p.TimeoutPerTry = 1500 * time.Millisecond
-	p.OnRetry = func(info retry.AttemptInfo) {
-		fmt.Printf("retry attempt=%d err=%v delay=%v\n", info.Attempt, info.Err, info.Delay)
+	client := retryx.Wrapper{
+		Retry:   policy,
+		Breaker: br,
 	}
-
-	w := retryx.Wrapper{Retry: p, Breaker: br}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	err := w.Do(ctx, func(ctx context.Context) error {
-		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, "https://example.com", nil)
-		resp, err := client.Do(req)
+	err := client.Do(ctx, func(ctx context.Context) error {
+		req, err := http.NewRequestWithContext(
+			ctx,
+			http.MethodGet,
+			"https://example.com",
+			nil,
+		)
+		if err != nil {
+			return err
+		}
+
+		resp, err := httpClient.Do(req)
 		if err != nil {
 			return err
 		}
@@ -48,9 +67,9 @@ func main() {
 			return retry.HTTPStatusError{StatusCode: resp.StatusCode}
 		}
 
-		fmt.Println("ok:", resp.Status)
+		fmt.Printf("[ok] status=%s\n", resp.Status)
 		return nil
 	})
 
-	fmt.Println("final err:", err)
+	fmt.Println("final error:", err)
 }
