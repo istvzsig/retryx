@@ -1,6 +1,6 @@
 # retryx
 
-> Lightweight, dependency-free resilience primitives for Go.
+![CI](https://github.com/istvzsig/retryx/actions/workflows/ci.yml/badge.svg)
 
 retryx helps you build **production-grade resilient clients** with:
 
@@ -139,6 +139,24 @@ if retry.RetryHTTPStatus(resp.StatusCode) {
 	return retry.HTTPStatusError{StatusCode: resp.StatusCode}
 }
 ```
+
+## Failure Simulation Demo
+
+This example shows retryx behavior under unstable conditions:
+
+- retry attempts with exponential backoff
+- circuit breaker opening under repeated failures
+- recovery after timeout
+
+```bash
+go run ./examples/failure_demo
+```
+
+What you will see
+
+- retry attempts printed
+- breaker state transitions
+- fast failure when circuit is open
 
 ---
 
