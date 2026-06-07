@@ -4,11 +4,11 @@
 
 retryx helps you build **production-grade resilient clients** with:
 
-- retries (exponential backoff + jitter)
-- circuit breakers
-- context-aware cancellation
-- optional per-attempt timeouts
-- composable retry + breaker wrapper
+- Retry (exponential backoff + jitter)
+- Circuit breakers
+- Context-aware cancellation
+- Optional per-attempt timeouts
+- Composable retry + breaker wrapper
 
 Designed for real backend systems calling HTTP, gRPC, or any unreliable dependency.
 
@@ -19,9 +19,9 @@ Designed for real backend systems calling HTTP, gRPC, or any unreliable dependen
 In distributed systems, failures are normal:
 
 - APIs fail intermittently
-- services degrade under load
-- network calls timeout
-- downstream dependencies become unstable
+- Services degrade under load
+- Network calls timeout
+- Downstream dependencies become unstable
 
 Without proper resilience, these failures can cascade and bring down entire systems.
 
@@ -213,12 +213,14 @@ retryx is ideal for:
 
 ---
 
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
 ## Summary
 
 retryx provides simple, composable resilience primitives for real-world Go systems.
 
 No frameworks. No dependencies. No magic.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
