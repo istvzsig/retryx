@@ -132,12 +132,35 @@ err := br.Do(ctx, func(ctx context.Context) error {
 
 ## HTTP Retry Helper
 
+Retry decision should be made at the call site:
+
 ```go
-if retry.RetryHTTPStatus(resp.StatusCode) {
-	return retry.HTTPStatusError{
-		StatusCode: resp.StatusCode,
+import "errors"
+
+err := client.Do(ctx, func(ctx context.Context) error {
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		"https://example.com",
+		nil,
+	)
+	if err != nil {
+		return err
 	}
-}
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// retryable HTTP statuses
+	if resp.StatusCode >= 500 || resp.StatusCode == 429 {
+		return errors.New("retryable http status")
+	}
+
+	return nil
+})
 ```
 
 ---
@@ -258,3 +281,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 retryx provides simple, composable resilience primitives for real-world Go systems.
 
 No frameworks. No dependencies. No magic.
+
+## v1.0 API Stability
+
+Once v1.0 is released:
+
+- No breaking changes without major version bump
+- Retry and breaker APIs will remain stable
+- Only additive changes allowed (backwards compatible)
