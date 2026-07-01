@@ -30,6 +30,8 @@ type Breaker struct {
 
 	// In half-open, allow only one inflight probe.
 	halfOpenInFlight bool
+	HalfOpenMax      int
+	halfOpenCount    int
 }
 
 func New(cfg BreakerConfig) *Breaker {
@@ -46,16 +48,21 @@ func New(cfg BreakerConfig) *Breaker {
 }
 
 func (b *Breaker) State() State {
-	var sc *stateChange
-
 	b.mu.Lock()
-	sc = b.maybeTransitionLocked(time.Now())
+	defer b.mu.Unlock()
+	return b.state
+}
+
+func (b *Breaker) Refresh() State {
+	b.mu.Lock()
+	sc := b.maybeTransitionLocked(time.Now())
 	st := b.state
 	b.mu.Unlock()
 
 	if sc != nil {
 		sc.cb(sc.from, sc.to)
 	}
+
 	return st
 }
 
