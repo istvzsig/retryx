@@ -37,6 +37,7 @@ retryx provides simple building blocks to prevent this.
 - Per-attempt timeout
 - Custom retry logic
 - Retry hooks
+- HTTP retry helpers
 
 ### Circuit Breaker
 
@@ -133,27 +134,42 @@ err := br.Do(ctx, func(ctx context.Context) error {
 
 ```go
 if retry.RetryHTTPStatus(resp.StatusCode) {
-	return retry.HTTPStatusError{StatusCode: resp.StatusCode}
+	return retry.HTTPStatusError{
+		StatusCode: resp.StatusCode,
+	}
 }
 ```
 
+---
+
+## HTTP Client Example
+
+A complete example wrapping the standard `net/http` client with retry and circuit breaker is included.
+
+```bash
+go run ./examples/httpclient
+```
+
+The example demonstrates:
+
+- context-aware HTTP requests
+- retryable HTTP status handling
+- retryable network errors
+- retry + circuit breaker composition
+
+---
+
 ## Failure Simulation Demo
 
-This example shows retryx behavior under unstable conditions:
+Simulates an unstable upstream service and demonstrates:
 
-- retry attempts with exponential backoff
-- circuit breaker opening under repeated failures
-- recovery after timeout
+- retry with exponential backoff
+- circuit breaker opening after repeated failures
+- automatic recovery after the open timeout
 
 ```bash
 go run ./examples/failure_demo
 ```
-
-What you will see
-
-- retry attempts printed
-- breaker state transitions
-- fast failure when circuit is open
 
 ---
 
@@ -221,16 +237,13 @@ go test -race ./...
 
 ---
 
-## Use cases
-
-retryx is ideal for:
-
-- HTTP clients
+- resilient HTTP clients
 - gRPC clients
 - microservices
 - background workers
 - distributed systems
-- external API integration
+- database access
+- third-party API integrations
 
 ---
 

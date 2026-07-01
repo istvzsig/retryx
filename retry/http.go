@@ -7,26 +7,27 @@ import (
 )
 
 func RetryHTTPStatus(code int) bool {
-	switch code {
-	case 408, 425, 429, 500, 502, 503, 504:
-		return true
-	default:
-		return false
-	}
+	return code >= 500 || code == 429
 }
 
+// RetryHTTPError decides whether a transport-level error is retryable.
+//
+// This is ONLY for:
+// - network failures
+// - broken connections
+// - transient IO issues
 func RetryHTTPError(err error) bool {
 	if err == nil {
 		return false
 	}
 
-	// network errors
+	// timeout / network errors
 	var ne net.Error
 	if errors.As(err, &ne) {
 		return true
 	}
 
-	// EOF = broken connection
+	// broken connection
 	if errors.Is(err, io.EOF) {
 		return true
 	}

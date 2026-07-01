@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -63,8 +64,8 @@ func main() {
 		}
 		defer resp.Body.Close()
 
-		if retry.RetryHTTPStatus(resp.StatusCode) {
-			return retry.HTTPStatusError{StatusCode: resp.StatusCode}
+		if resp.StatusCode >= 500 || resp.StatusCode == 429 {
+			return errors.New("retryable http status")
 		}
 
 		fmt.Printf("[ok] status=%s\n", resp.Status)
