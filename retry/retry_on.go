@@ -3,6 +3,7 @@ package retry
 import (
 	"context"
 	"errors"
+	"io"
 	"net"
 )
 
@@ -13,16 +14,18 @@ func DefaultRetryOn(err error) bool {
 		return false
 	}
 
-	if errors.Is(err, context.Canceled) {
-		return false
-	}
-	if errors.Is(err, context.DeadlineExceeded) {
+	if errors.Is(err, context.Canceled) ||
+		errors.Is(err, context.DeadlineExceeded) {
 		return false
 	}
 
 	var ne net.Error
 	if errors.As(err, &ne) {
-		return ne.Timeout()
+		return true
+	}
+
+	if errors.Is(err, io.EOF) {
+		return true
 	}
 
 	return false

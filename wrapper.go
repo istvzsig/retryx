@@ -25,16 +25,7 @@ type Wrapper struct {
 }
 
 func (w Wrapper) Do(ctx context.Context, fn func(context.Context) error) error {
-	call := fn
-	if w.Breaker != nil {
-		call = func(c context.Context) error {
-			return w.Breaker.Do(c, fn)
-		}
-	}
-
-	p := w.Retry
-	if p.MaxAttempts == 0 {
-		p = retry.DefaultPolicy()
-	}
-	return retry.Do(ctx, p, call)
+	return w.Breaker.Do(ctx, func(ctx context.Context) error {
+		return retry.Do(ctx, w.Retry, fn)
+	})
 }
