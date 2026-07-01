@@ -4,15 +4,11 @@
 ![Go Version](https://img.shields.io/badge/go-1.22-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-retryx helps you build **production-grade resilient clients** with:
+retryx is a lightweight Go library for building **resilient distributed systems**.
 
-- Retry (exponential backoff + jitter)
-- Circuit breakers
-- Context-aware cancellation
-- Optional per-attempt timeouts
-- Composable retry + breaker wrapper
+It provides **retry + circuit breaker primitives without frameworks, hidden magic, or dependencies**.
 
-Designed for real backend systems calling HTTP, gRPC, or any unreliable dependency.
+Designed for real backend systems calling HTTP, gRPC, databases, or any unreliable dependency.
 
 ---
 
@@ -27,7 +23,7 @@ In distributed systems, failures are normal:
 
 Without proper resilience, these failures can cascade and bring down entire systems.
 
-retryx provides simple building blocks to prevent that.
+retryx provides simple building blocks to prevent this.
 
 ---
 
@@ -37,7 +33,7 @@ retryx provides simple building blocks to prevent that.
 
 - Exponential backoff
 - Jitter support
-- Context cancellation support
+- Context-aware cancellation
 - Per-attempt timeout
 - Custom retry logic
 - Retry hooks
@@ -63,9 +59,7 @@ retryx provides simple building blocks to prevent that.
 go get github.com/istvzsig/retryx
 ```
 
----
-
-## Quick Example
+## Quick Start
 
 ### Retry + Circuit Breaker
 
@@ -74,7 +68,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -101,7 +94,7 @@ func main() {
 	ctx := context.Background()
 
 	err := client.Do(ctx, func(ctx context.Context) error {
-		return errors.New("service failed")
+		return callService(ctx)
 	})
 
 	fmt.Println("result:", err)
@@ -114,7 +107,7 @@ func main() {
 
 ```go
 err := retry.Do(ctx, retry.DefaultPolicy(), func(ctx context.Context) error {
-	return callService()
+	return callService(ctx)
 })
 ```
 
@@ -129,7 +122,9 @@ br := breaker.New(breaker.BreakerConfig{
 	OpenTimeout:      10 * time.Second,
 })
 
-err := br.Do(ctx, fn)
+err := br.Do(ctx, func(ctx context.Context) error {
+	return callService(ctx)
+})
 ```
 
 ---
@@ -209,6 +204,12 @@ Run fresh:
 
 ```bash
 go test -count=1 ./...
+```
+
+Race detector test:
+
+```bash
+go test -race ./...
 ```
 
 ---
