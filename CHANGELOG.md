@@ -6,7 +6,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ---
 
-## [v1.0.0] - 2026-07-01
+## [v1.0.0] - November 2, 2026
 
 ### 🎉 First stable release
 
